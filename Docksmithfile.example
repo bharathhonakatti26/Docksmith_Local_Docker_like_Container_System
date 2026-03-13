@@ -1,0 +1,7 @@
+# Example Docksmithfile
+FROM scratch
+WORKDIR /app
+ENV MODE=dev
+COPY . /app
+RUN echo "Built by Docksmith"
+CMD python main.py

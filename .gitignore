@@ -1,0 +1,50 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# Pytest
+.pytest_cache/
+
+# Coverage
+.coverage
+coverage.xml
+
+# Logs
+*.log
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Docksmith local storage (user/home runtime data)
+.docksmith/
+.docksmith_registry/
+
+# Environment files
+.env
+
+# Database files
+*.db
+
+# compiled extensions
+*.so

@@ -1,0 +1,6 @@
+FROM scratch
+WORKDIR /app
+ENV MODE=dev
+COPY . /app
+RUN echo Hello_from_RUN > hello.txt
+CMD python main.py
