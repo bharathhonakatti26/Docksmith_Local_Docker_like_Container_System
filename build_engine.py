@@ -110,7 +110,7 @@ def build_image(context: str, name: str, tag: str, no_cache: bool=False):
             src_hashes = _compute_copy_src_hashes(context, src)
             cache_key = sha256_bytes((prev_digest + 'COPY' + arg + workdir + json.dumps(env, sort_keys=True) + src_hashes).encode('utf-8'))
             cached = None if no_cache or cache_broken else get_cached_layer(cache_key)
-            if cached:
+            if cached and os.path.exists(layer_path(cached)):
                 layers.append({'digest': f'sha256:{cached}'})
                 prev_digest = cached
                 duration = time.time() - step_start
@@ -141,7 +141,7 @@ def build_image(context: str, name: str, tag: str, no_cache: bool=False):
             # Simple strategy: materialize previous layers into tempdir, run the command, then tar full FS
             cache_key = sha256_bytes((prev_digest + 'RUN' + arg + workdir + json.dumps(env, sort_keys=True)).encode('utf-8'))
             cached = None if no_cache or cache_broken else get_cached_layer(cache_key)
-            if cached:
+            if cached and os.path.exists(layer_path(cached)):
                 layers.append({'digest': f'sha256:{cached}'})
                 prev_digest = cached
                 duration = time.time() - step_start

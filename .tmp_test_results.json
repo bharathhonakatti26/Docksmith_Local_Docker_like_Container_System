@@ -1,0 +1,77 @@
+{
+  "passed": 13,
+  "failed": 1,
+  "total": 14,
+  "results": [
+    {
+      "name": "build_cold_valid",
+      "passed": true,
+      "details": "Step 1/6 : FROM scratch (info) 0.00s\nStep 2/6 : WORKDIR /app (config) 0.00s\nStep 3/6 : ENV MODE=dev (config) 0.00s\nStep 4/6 : COPY . /app [CACHE MISS] 0.01s -> 441edcbeb922f69da9ccb4801cbb7728aa3f3cb675b98f5f6bf7b53ff1597ca5\nRunning command in temp FS: echo Hello_from_RUN > hello.txt\nStep 5/6 : RUN echo Hello_from_RUN > hello.txt [CACHE MISS] 0.05s -> 5c65269cff193939aee8440f4df646e54f5fdf4c5bd6468f3b96c3e26f01ba23\nStep 6/6 : CMD python main.py (config) 0.00s\nSuccessfully built sha256:d94fca22adc20c53e05046730779b0da96035fc88fa450daf1d9c325587e7568 tvalid_1776322561:latest (0.05s)\n"
+    },
+    {
+      "name": "build_warm_cache_hit",
+      "passed": true,
+      "details": "Step 1/6 : FROM scratch (info) 0.00s\nStep 2/6 : WORKDIR /app (config) 0.00s\nStep 3/6 : ENV MODE=dev (config) 0.00s\nStep 4/6 : COPY . /app [CACHE HIT] 0.00s\nStep 5/6 : RUN echo Hello_from_RUN > hello.txt [CACHE HIT] 0.00s\nStep 6/6 : CMD python main.py (config) 0.00s\nSuccessfully built sha256:d94fca22adc20c53e05046730779b0da96035fc88fa450daf1d9c325587e7568 tvalid_1776322561:latest (0.00s)\n"
+    },
+    {
+      "name": "images_list_valid",
+      "passed": true,
+      "details": "NAME                 TAG        ID           CREATED\nscratch              latest     f7ee46f8d5e7 2026-04-16T12:24:22Z\ntnocmd2              latest     a7a84b35bab9 2026-04-16T12:25:06Z\ntvalid_1776322549    latest     7d18a0e78648 2026-04-16T12:25:49Z\ntvalid_1776322561    latest     d94fca22adc2 2026-04-16T12:26:02Z\ntvalid               latest     46d531cd88d4 2026-04-16T12:24:39Z\n"
+    },
+    {
+      "name": "run_default_valid",
+      "passed": true,
+      "details": "App started\nhello.txt contents:\nHello_from_RUN \n\nENV MODE = dev\nRunning command (isolation helper): python main.py\n"
+    },
+    {
+      "name": "run_env_override_valid",
+      "passed": true,
+      "details": "App started\nhello.txt contents:\nHello_from_RUN \n\nENV MODE = prod\nRunning command (isolation helper): python main.py\n"
+    },
+    {
+      "name": "run_cmd_override_valid",
+      "passed": true,
+      "details": "OVERRIDE_OK\nRunning command (isolation helper): echo OVERRIDE_OK\n"
+    },
+    {
+      "name": "build_invalid_missing_docksmithfile",
+      "passed": true,
+      "details": "Error: Docksmithfile not found in context\n"
+    },
+    {
+      "name": "build_invalid_unsupported_instruction",
+      "passed": true,
+      "details": "Error: Unsupported instruction on line 2: FOO\n"
+    },
+    {
+      "name": "build_invalid_missing_base",
+      "passed": true,
+      "details": "Error: Base image not found in local store: doesnotexist:latest\n"
+    },
+    {
+      "name": "run_invalid_missing_image",
+      "passed": true,
+      "details": "Error: Image not found: image_not_exist_1776322561:latest. Build it first with 'python -m main build -t image_not_exist_1776322561:latest <context>' or pull it from LAN registry.\n"
+    },
+    {
+      "name": "run_invalid_no_cmd",
+      "passed": false,
+      "details": "Error: Image not found: tnocmd_1776322561:latest. Build it first with 'python -m main build -t tnocmd_1776322561:latest <context>' or pull it from LAN registry.\n"
+    },
+    {
+      "name": "rmi_invalid_missing_image",
+      "passed": true,
+      "details": "Error: Image manifest not found: missing_for_rmi_1776322561:latest\n"
+    },
+    {
+      "name": "rmi_valid_existing_image",
+      "passed": true,
+      "details": "Removed image manifest and layers for tnocmd_1776322561:latest\n"
+    },
+    {
+      "name": "runtime_isolation_write_check",
+      "passed": true,
+      "details": "Running command (isolation helper): echo x '>' container_only.txt\n\nhost_file_exists=False"
+    }
+  ]
+}

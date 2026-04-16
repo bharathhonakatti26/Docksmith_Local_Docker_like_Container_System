@@ -40,7 +40,9 @@ def run(ctx, env, image, cmd):
     cmd_override = list(cmd) if cmd else None
     try:
         run_image(name, tag, cmd_override=cmd_override, env_overrides=env_overrides)
-    except FileNotFoundError:
+    except FileNotFoundError as exc:
+        if 'Layer file missing:' in str(exc):
+            raise click.ClickException(str(exc))
         raise click.ClickException(
             f"Image not found: {name}:{tag}. Build it first with 'python -m main build -t {name}:{tag} <context>' or pull it from LAN registry."
         )
