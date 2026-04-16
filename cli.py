@@ -19,7 +19,10 @@ def cli():
 def build(tag, no_cache, context):
     """Build an image from a Docksmithfile in CONTEXT"""
     name, tagname = tag.split(':') if ':' in tag else (tag, 'latest')
-    build_image(context, name, tagname, no_cache=no_cache)
+    try:
+        build_image(context, name, tagname, no_cache=no_cache)
+    except (FileNotFoundError, ValueError, RuntimeError) as exc:
+        raise click.ClickException(str(exc))
 
 @cli.command(context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
 @click.option('-e', '--env', multiple=True, help='Environment override KEY=VALUE (repeatable)')
@@ -35,7 +38,14 @@ def run(ctx, env, image, cmd):
             k, v = e.split('=', 1)
             env_overrides[k] = v
     cmd_override = list(cmd) if cmd else None
-    run_image(name, tag, cmd_override=cmd_override, env_overrides=env_overrides)
+    try:
+        run_image(name, tag, cmd_override=cmd_override, env_overrides=env_overrides)
+    except FileNotFoundError:
+        raise click.ClickException(
+            f"Image not found: {name}:{tag}. Build it first with 'python -m main build -t {name}:{tag} <context>' or pull it from LAN registry."
+        )
+    except RuntimeError as exc:
+        raise click.ClickException(str(exc))
 
 @cli.command()
 def images():
@@ -51,7 +61,10 @@ def images():
 def rmi(image):
     """Remove an image"""
     name, tag = image.split(':') if ':' in image else (image, 'latest')
-    remove_image(name, tag)
+    try:
+        remove_image(name, tag)
+    except FileNotFoundError as exc:
+        raise click.ClickException(str(exc))
 
 @cli.command()
 @click.option('--host', default='0.0.0.0')
@@ -74,7 +87,12 @@ def push(image, server):
 def pull(image, server):
     """Pull an image from a LAN registry (server is ip:port)"""
     name, tag = image.split(':') if ':' in image else (image, 'latest')
-    pull_image(name, tag, server)
+    try:
+        pull_image(name, tag, server)
+    except RuntimeError as exc:
+        raise click.ClickException(str(exc))
+    except Exception as exc:
+        raise click.ClickException(f'Failed to pull image {name}:{tag} from {server}: {exc}')
 
 if __name__ == '__main__':
     cli()

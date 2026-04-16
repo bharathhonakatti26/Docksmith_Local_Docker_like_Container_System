@@ -14,16 +14,18 @@ ALLOWED = {'FROM', 'COPY', 'RUN', 'WORKDIR', 'ENV', 'CMD'}
 
 
 def parse_docksmithfile(path: str) -> list:
-    with open(path, 'r') as f:
-        lines = [l.strip() for l in f if l.strip() and not l.strip().startswith('#')]
     instrs = []
-    for l in lines:
-        parts = l.split(maxsplit=1)
-        cmd = parts[0].upper()
-        if cmd not in ALLOWED:
-            raise ValueError(f'Unsupported instruction: {cmd}')
-        arg = parts[1] if len(parts) > 1 else ''
-        instrs.append((cmd, arg))
+    with open(path, 'r') as f:
+        for lineno, raw in enumerate(f, start=1):
+            line = raw.strip()
+            if not line or line.startswith('#'):
+                continue
+            parts = line.split(maxsplit=1)
+            cmd = parts[0].upper()
+            if cmd not in ALLOWED:
+                raise ValueError(f'Unsupported instruction on line {lineno}: {cmd}')
+            arg = parts[1] if len(parts) > 1 else ''
+            instrs.append((cmd, arg))
     return instrs
 
 
@@ -72,27 +74,35 @@ def build_image(context: str, name: str, tag: str, no_cache: bool=False):
         step_label = f"Step {step_idx}/{len(instrs)} : {cmd} {arg}"
         step_start = time.time()
         if cmd == 'FROM':
-            # Attempt to resolve base image manifest digest for cache keys
             base = arg.strip()
-            if base:
-                try:
-                    bname, btag = (base.split(':') if ':' in base else (base, 'latest'))
-                    bm = load_manifest(bname, btag)
-                    prev_digest = bm.get('digest', '').split(':', 1)[1] if 'digest' in bm else ''
-                except Exception:
-                    prev_digest = ''
+            if not base:
+                raise ValueError('FROM requires a base image name, e.g. FROM alpine:3.18')
+            bname, btag = (base.split(':', 1) if ':' in base else (base, 'latest'))
+            try:
+                bm = load_manifest(bname, btag)
+            except FileNotFoundError as exc:
+                raise FileNotFoundError(
+                    f'Base image not found in local store: {bname}:{btag}'
+                ) from exc
+            prev_digest = bm.get('digest', '').split(':', 1)[1] if 'digest' in bm else ''
             duration = time.time() - step_start
             print(f"{step_label} (info) {duration:.2f}s")
             continue
         if cmd == 'WORKDIR':
             workdir = arg
+            duration = time.time() - step_start
+            print(f"{step_label} (config) {duration:.2f}s")
             continue
         if cmd == 'ENV':
             key, val = arg.split('=', 1)
             env[key] = val
+            duration = time.time() - step_start
+            print(f"{step_label} (config) {duration:.2f}s")
             continue
         if cmd == 'CMD':
             cmd_cfg = arg.strip().split()
+            duration = time.time() - step_start
+            print(f"{step_label} (config) {duration:.2f}s")
             continue
         if cmd == 'COPY':
             # arg: "src dest"
