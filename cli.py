@@ -5,6 +5,7 @@ from image_manager import list_images, remove_image
 from lan.registry_server import run_server
 from lan.push import push_image
 from lan.pull import pull_image
+from lan.registry_ops import list_registry_images, delete_registry_image
 
 @click.group()
 
@@ -95,6 +96,41 @@ def pull(image, server):
         raise click.ClickException(str(exc))
     except Exception as exc:
         raise click.ClickException(f'Failed to pull image {name}:{tag} from {server}: {exc}')
+
+
+@cli.command('registry-images')
+@click.argument('server')
+def registry_images(server):
+    """List images available in a LAN registry (server is ip:port)."""
+    try:
+        images = list_registry_images(server)
+        if not images:
+            click.echo('No images found in registry')
+            return
+        click.echo('REGISTRY IMAGES')
+        for item in images:
+            if '_' in item:
+                name, tag = item.rsplit('_', 1)
+                click.echo(f'{name}:{tag}')
+            else:
+                click.echo(item)
+    except Exception as exc:
+        raise click.ClickException(f'Failed to list registry images from {server}: {exc}')
+
+
+@cli.command('registry-rmi')
+@click.argument('image')
+@click.argument('server')
+def registry_rmi(image, server):
+    """Delete an image from a LAN registry (server is ip:port)."""
+    name, tag = image.split(':') if ':' in image else (image, 'latest')
+    try:
+        delete_registry_image(name, tag, server)
+        click.echo(f'Deleted registry image {name}:{tag} from {server}')
+    except RuntimeError as exc:
+        raise click.ClickException(str(exc))
+    except Exception as exc:
+        raise click.ClickException(f'Failed to delete registry image {name}:{tag} from {server}: {exc}')
 
 if __name__ == '__main__':
     cli()

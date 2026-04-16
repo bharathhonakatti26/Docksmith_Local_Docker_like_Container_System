@@ -51,5 +51,27 @@ def get_image(name_tag):
         return jsonify(json.load(f))
 
 
+@app.route('/images/<name_tag>', methods=['DELETE'])
+def delete_image(name_tag):
+    path = os.path.join(IMAGES_DIR, f'{name_tag}.json')
+    if not os.path.exists(path):
+        return ('Not found', 404)
+
+    with open(path, 'r') as f:
+        manifest = json.load(f)
+
+    # Delete all layers referenced by this manifest (no reference counting).
+    for layer in manifest.get('layers', []):
+        digest = layer.get('digest', '')
+        if isinstance(digest, str) and digest.startswith('sha256:'):
+            hex_digest = digest.split(':', 1)[1]
+            layer_path = os.path.join(LAYERS_DIR, f'sha256_{hex_digest}.tar')
+            if os.path.exists(layer_path):
+                os.remove(layer_path)
+
+    os.remove(path)
+    return ('', 204)
+
+
 def run_server(host='0.0.0.0', port=5000):
     app.run(host=host, port=port)

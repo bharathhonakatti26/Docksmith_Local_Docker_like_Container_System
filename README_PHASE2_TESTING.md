@@ -66,6 +66,35 @@ Expected:
 - `Pushed image myapp latest to <A_IP>:5000`
 - Registry files appear under `~/.docksmith_registry/images/` and `~/.docksmith_registry/layers/` on Machine A
 
+Step 3.5 — View and delete images in registry (Machine A or B)
+1. View images currently stored in the registry:
+
+```bash
+python -m main registry-images <A_IP>:5000
+```
+
+Expected:
+- Header `REGISTRY IMAGES` followed by lines like `myapp:latest`
+- If empty: `No images found in registry`
+
+2. Delete one image from the registry:
+
+```bash
+python -m main registry-rmi myapp:latest <A_IP>:5000
+```
+
+Expected:
+- `Deleted registry image myapp:latest from <A_IP>:5000`
+
+3. Verify deletion:
+
+```bash
+python -m main registry-images <A_IP>:5000
+```
+
+Expected:
+- Deleted image no longer appears in registry list.
+
 Step 4 — Pull image on Machine B
 1. On Machine B (repo cloned and venv active), pull the image from Machine A:
 
@@ -109,6 +138,8 @@ Troubleshooting
 	- On Windows, allow inbound TCP 5000 in Windows Defender Firewall for the Python process.
 - `curl` returns HTML or 404: ensure the registry server is the Docksmith Flask app and listening on the correct port.
 - Push fails partway: check disk space on Machine A and inspect `~/.docksmith_registry/layers/` for partial files.
+- Registry delete says image not found:
+	- Verify exact tag/name with `python -m main registry-images <A_IP>:5000` and retry.
 
 Advanced tests
 - Simulate partial pulls: delete one layer file from `~/.docksmith_registry/layers/` on Machine A and attempt to `pull` on Machine B — the pull should fail with a clear error for missing layer.
@@ -120,6 +151,12 @@ Cleanup
 
 ```bash
 python -m main rmi myapp:latest
+```
+
+- Optionally remove image from registry on Machine A:
+
+```bash
+python -m main registry-rmi myapp:latest <A_IP>:5000
 ```
 
 Notes
