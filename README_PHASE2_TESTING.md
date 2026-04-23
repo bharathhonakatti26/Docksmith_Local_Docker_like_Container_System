@@ -51,6 +51,7 @@ nohup python -m main serve --host 0.0.0.0 --port 5000 &>/tmp/docksmith-registry.
 
 ```bash
 curl http://<A_IP>:5000/images
+curl http://172.17.128.1:5000/images
 # expected: [] or JSON list
 ```
 

@@ -78,13 +78,17 @@ def build_image(context: str, name: str, tag: str, no_cache: bool=False):
             if not base:
                 raise ValueError('FROM requires a base image name, e.g. FROM alpine:3.18')
             bname, btag = (base.split(':', 1) if ':' in base else (base, 'latest'))
-            try:
-                bm = load_manifest(bname, btag)
-            except FileNotFoundError as exc:
-                raise FileNotFoundError(
-                    f'Base image not found in local store: {bname}:{btag}'
-                ) from exc
-            prev_digest = bm.get('digest', '').split(':', 1)[1] if 'digest' in bm else ''
+            # Handle special "scratch" image (empty base)
+            if bname == 'scratch':
+                prev_digest = ''
+            else:
+                try:
+                    bm = load_manifest(bname, btag)
+                except FileNotFoundError as exc:
+                    raise FileNotFoundError(
+                        f'Base image not found in local store: {bname}:{btag}'
+                    ) from exc
+                prev_digest = bm.get('digest', '').split(':', 1)[1] if 'digest' in bm else ''
             duration = time.time() - step_start
             print(f"{step_label} (info) {duration:.2f}s")
             continue

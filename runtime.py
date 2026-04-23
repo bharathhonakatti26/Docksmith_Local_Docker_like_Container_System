@@ -1,5 +1,6 @@
 import tempfile
 import os
+import sys
 import shutil
 import subprocess
 import shlex
@@ -38,7 +39,15 @@ def run_image(name: str, tag: str, cmd_override: list | None = None, env_overrid
             raise RuntimeError('No CMD defined for image and no command override provided')
 
         # Use shared isolation helper (unshare/chroot when available). Fallback to non-isolated run.
-        cmd_str = full_cmd if isinstance(full_cmd, str) else ' '.join(shlex.quote(str(c)) for c in full_cmd)
+        # Platform-aware command string construction
+        if isinstance(full_cmd, str):
+            cmd_str = full_cmd
+        else:
+            # On Windows, use simple space-join; on Unix/Linux, use proper shell quoting
+            if sys.platform == 'win32':
+                cmd_str = ' '.join(str(c) for c in full_cmd)
+            else:
+                cmd_str = ' '.join(shlex.quote(str(c)) for c in full_cmd)
         print('Running command (isolation helper):', cmd_str)
         rc = run_in_isolation(temp, cmd_str, env=env, workdir=workdir or '/')
         if rc != 0:
